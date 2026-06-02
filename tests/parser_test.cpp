@@ -59,7 +59,7 @@ int main()
 
     {
         lte::InputParser parser;
-        const unsigned char esc[] = {0x1b};
+        constexpr unsigned char esc[] = {0x1b};
         parser.feed(std::span(esc));
         lte::NativeEvent event;
         assert(parser.next_event(event) == lte::ParseStatus::NeedMore);
