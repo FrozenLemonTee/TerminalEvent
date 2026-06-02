@@ -19,7 +19,7 @@ public:
     void feed(std::span<const unsigned char> bytes);
     ParseStatus next_event(NativeEvent& out);
     ParseStatus flush_timeout(NativeEvent& out);
-    bool empty() const;
+    [[nodiscard]] bool empty() const;
 
 private:
     std::vector<unsigned char> pending_;
