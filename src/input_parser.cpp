@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <charconv>
-#include <cctype>
 #include <iterator>
 #include <string>
 #include <system_error>
@@ -17,7 +16,7 @@ bool is_printable_ascii(const unsigned char ch)
     return ch >= 0x20 && ch <= 0x7e;
 }
 
-std::string bytes_to_string(std::span<const unsigned char> bytes)
+std::string bytes_to_string(const std::span<const unsigned char> bytes)
 {
     return {reinterpret_cast<const char*>(bytes.data()), bytes.size()};
 }
@@ -31,21 +30,21 @@ int decode_csi_modifier(const int value)
     const int encoded = value - 1;
     int modifiers = 0;
     if ((encoded & 1) != 0) {
-        modifiers |= Modifier::Shift;
+        modifiers |= Shift;
     }
     if ((encoded & 2) != 0) {
-        modifiers |= Modifier::Alt;
+        modifiers |= Alt;
     }
     if ((encoded & 4) != 0) {
-        modifiers |= Modifier::Ctrl;
+        modifiers |= Ctrl;
     }
     if ((encoded & 8) != 0) {
-        modifiers |= Modifier::Meta;
+        modifiers |= Meta;
     }
     return modifiers;
 }
 
-bool parse_int(std::string_view input, int& out)
+bool parse_int(const std::string_view input, int& out)
 {
     if (input.empty()) {
         return false;
@@ -158,7 +157,7 @@ ParseStatus InputParser::parse_escape(NativeEvent& out)
         return ParseStatus::Emit;
     }
 
-    std::string unknown = bytes_to_string(std::span(pending_.data(), std::min<std::size_t>(2, pending_.size())));
+    const std::string unknown = bytes_to_string(std::span(pending_.data(), std::min<std::size_t>(2, pending_.size())));
     consume(unknown.size());
     out = make_unknown(unknown);
     return ParseStatus::Emit;
@@ -170,8 +169,7 @@ ParseStatus InputParser::parse_csi(NativeEvent& out)
         return ParseStatus::NeedMore;
     }
 
-    const unsigned char final = pending_[2];
-    if (final == 'A' || final == 'B' || final == 'C' || final == 'D' || final == 'H' || final == 'F') {
+    if (const unsigned char final = pending_[2]; final == 'A' || final == 'B' || final == 'C' || final == 'D' || final == 'H' || final == 'F') {
         consume(3);
         switch (final) {
         case 'A':
@@ -199,8 +197,7 @@ ParseStatus InputParser::parse_csi(NativeEvent& out)
 
     std::size_t final_pos = 2;
     while (final_pos < pending_.size()) {
-        unsigned char ch = pending_[final_pos];
-        if (ch >= 0x40 && ch <= 0x7e) {
+        if (const unsigned char ch = pending_[final_pos]; ch >= 0x40 && ch <= 0x7e) {
             break;
         }
         ++final_pos;
@@ -210,26 +207,26 @@ ParseStatus InputParser::parse_csi(NativeEvent& out)
         return ParseStatus::NeedMore;
     }
 
-    std::string body = bytes_to_string(std::span(pending_.data() + 2, final_pos - 2));
-    char final_char = static_cast<char>(pending_[final_pos]);
-    std::size_t sequence_len = final_pos + 1;
+    const std::string body = bytes_to_string(std::span(pending_.data() + 2, final_pos - 2));
+    const char final_char = static_cast<char>(pending_[final_pos]);
+    const std::size_t sequence_len = final_pos + 1;
 
     if (body == "200" && final_char == '~') {
         constexpr unsigned char end_seq[] = {ESC, '[', '2', '0', '1', '~'};
-        auto begin = pending_.begin() + static_cast<std::ptrdiff_t>(sequence_len);
-        auto paste_end = std::search(begin, pending_.end(), std::begin(end_seq), std::end(end_seq));
+        const auto begin = pending_.begin() + static_cast<std::ptrdiff_t>(sequence_len);
+        const auto paste_end = std::search(begin, pending_.end(), std::begin(end_seq), std::end(end_seq));
         if (paste_end == pending_.end()) {
             return ParseStatus::NeedMore;
         }
         std::string text(reinterpret_cast<const char*>(&*begin), static_cast<std::size_t>(paste_end - begin));
-        consume(static_cast<std::size_t>((paste_end - pending_.begin()) + std::size(end_seq)));
+        consume(paste_end - pending_.begin() + std::size(end_seq));
         out = make_paste(std::move(text));
         return ParseStatus::Emit;
     }
 
-    auto params = parse_csi_params(body);
-    int first = params.empty() ? 0 : params[0];
-    int modifiers = params.size() >= 2 ? decode_csi_modifier(params[1]) : 0;
+    const auto params = parse_csi_params(body);
+    const int first = params.empty() ? 0 : params[0];
+    const int modifiers = params.size() >= 2 ? decode_csi_modifier(params[1]) : 0;
 
     if (final_char == '~') {
         consume(sequence_len);
@@ -306,7 +303,7 @@ ParseStatus InputParser::parse_csi(NativeEvent& out)
             out = make_key(KeyCode::End, {}, modifiers);
             return ParseStatus::Emit;
         default:
-            break;
+            ;
         }
     }
 
@@ -321,7 +318,7 @@ ParseStatus InputParser::parse_ss3(NativeEvent& out)
         return ParseStatus::NeedMore;
     }
 
-    char final = static_cast<char>(pending_[2]);
+    const char final = static_cast<char>(pending_[2]);
     consume(3);
     switch (final) {
     case 'A':
@@ -356,7 +353,7 @@ ParseStatus InputParser::parse_ss3(NativeEvent& out)
 
 ParseStatus InputParser::parse_utf8_or_ascii(NativeEvent& out)
 {
-    unsigned char ch = pending_[0];
+    const unsigned char ch = pending_[0];
 
     if (ch == '\r' || ch == '\n') {
         consume(1);
@@ -375,7 +372,7 @@ ParseStatus InputParser::parse_utf8_or_ascii(NativeEvent& out)
     }
 
     if (ch >= 1 && ch <= 26) {
-        char letter = static_cast<char>('a' + ch - 1);
+        const char letter = static_cast<char>('a' + ch - 1);
         consume(1);
         out = make_key(KeyCode::Character, std::string(1, letter), Modifier::Ctrl);
         return ParseStatus::Emit;
@@ -387,7 +384,7 @@ ParseStatus InputParser::parse_utf8_or_ascii(NativeEvent& out)
         return ParseStatus::Emit;
     }
 
-    int length = utf8_sequence_length(ch);
+    const int length = utf8_sequence_length(ch);
     if (length == 0) {
         consume(1);
         out = make_unknown(std::string(1, static_cast<char>(ch)));
@@ -397,7 +394,7 @@ ParseStatus InputParser::parse_utf8_or_ascii(NativeEvent& out)
         return ParseStatus::NeedMore;
     }
 
-    auto bytes = std::span(pending_.data(), static_cast<std::size_t>(length));
+    const auto bytes = std::span(pending_.data(), static_cast<std::size_t>(length));
     if (!valid_utf8_tail(bytes.subspan(1))) {
         consume(1);
         out = make_unknown(std::string(1, static_cast<char>(ch)));
