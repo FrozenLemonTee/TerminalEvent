@@ -5,7 +5,7 @@
     "FrozenLemonTee/LunarTUI": "0.0.1"
   },
   "readme": "README.md",
-  "repository": "",
+  "repository": "https://github.com/FrozenLemonTee/TerminalEvent",
   "license": "Apache-2.0",
   "keywords": [
     "tui",
