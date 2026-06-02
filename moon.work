@@ -1,4 +1,4 @@
 members = [
   ".",
-  "D:\\project\\open_source\\LunarTUI",
+  "../LunarTUI",
 ]
