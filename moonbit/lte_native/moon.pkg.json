@@ -1,3 +1,13 @@
 {
-  "supported-targets": "native"
+  "supported-targets": "native",
+  "link": {
+    "native": {
+      "cc": "clang",
+      "stub-cc": "clang",
+      "stub-cc-flags": "-std=c++20 -I../TerminalEvent/include"
+    }
+  },
+  "native-stub": [
+    "native_stub.cpp"
+  ]
 }
