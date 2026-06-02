@@ -1,0 +1,5 @@
+#include "../../src/native_event.cpp"
+#include "../../src/input_parser.cpp"
+#include "../../src/input_reader.cpp"
+#include "../../src/terminal_session.cpp"
+#include "../../src/c_api.cpp"
