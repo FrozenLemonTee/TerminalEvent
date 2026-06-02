@@ -96,7 +96,7 @@ int utf8_sequence_length(unsigned char lead)
 
 bool valid_utf8_tail(std::span<const unsigned char> bytes)
 {
-    return std::ranges::all_of(bytes, [](const unsigned char ch) {
+    return std::all_of(bytes.begin(), bytes.end(), [](const unsigned char ch) {
         return (ch & 0b1100'0000) == 0b1000'0000;
     });
 }
