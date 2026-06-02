@@ -76,7 +76,7 @@ int TerminalSession::enter_raw_mode()
         return -1;
     }
 
-    sigaction action {};
+    struct sigaction action {};
     action.sa_handler = handle_winch;
     sigemptyset(&action.sa_mask);
     action.sa_flags = 0;
