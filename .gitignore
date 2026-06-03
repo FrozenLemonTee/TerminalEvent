@@ -38,6 +38,7 @@ build/
 build-*/
 _build/
 .mooncakes/
+moon.work
 
 ### Example user template
 
