@@ -37,6 +37,10 @@ set_target_properties(lte_static PROPERTIES OUTPUT_NAME lte)
 
 enable_testing()
 
+add_custom_target(lte_moonbit_native_stub
+        SOURCES moonbit/lte_native/native_stub.cpp
+)
+
 add_executable(parser_test tests/parser_test.cpp)
 target_link_libraries(parser_test PRIVATE lte_core)
 add_test(NAME parser_test COMMAND parser_test)
